@@ -81,6 +81,7 @@ class HandDetector():
                     predicted_as_dict['Paper'] = 1
         return predicted_as_dict
 
+
 @app.route('/')
 def index():
     result={
@@ -91,13 +92,16 @@ def index():
 @app.route('/getResult',methods=['POST'])
 def get_result_as_dict():
         hand_detector = HandDetector()
-        img=request.get_json()
-        img=img['image']
-        # image_path = "cat.jpg"  # Replace with the actual path to your image
-        # img = Image.open(image_path)
-        predicted_data = hand_detector.get_result_as_dict(img, classifier)
+        if request.method == 'POST':
+            image=request.json
+            # print(type(image["image"]))
+            image=np.array(image["image"])
+            image=image.astype('uint8')
+            predicted_data = hand_detector.get_result_as_dict(image, classifier)
 
-        return predicted_data
+            # print(predicted_data)
+            
+            return predicted_data
 
 if __name__ == '__main__':
     app.run(debug=True)
