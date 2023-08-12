@@ -4,11 +4,9 @@ import numpy as np
 from flask import Flask, jsonify,request
 import xgboost
 from flask_cors import CORS
-from PIL import Image
-import sys
 import joblib
-from io import BytesIO
 import mediapipe as mp
+import zlib
 
 app=Flask(__name__)
 CORS(app)
@@ -82,6 +80,16 @@ class HandDetector():
         return predicted_as_dict
 
 
+def decompress_image(compressed_image_data):
+    # Decompress the compressed image data
+    decompressed_data = zlib.decompress(compressed_image_data.encode('latin1'))
+
+    # Convert the decompressed binary data to a numpy array
+    image_array = np.frombuffer(decompressed_data, dtype=np.uint8).reshape((640, 480, 3))
+
+    return image_array
+
+
 @app.route('/')
 def index():
     result={
@@ -95,8 +103,10 @@ def get_result_as_dict():
         if request.method == 'POST':
             image=request.json
             # print(type(image["image"]))
-            image=np.array(image["image"])
-            image=image.astype('uint8')
+            # image=np.array(image["image"])
+            image=image["image"]
+            image=decompress_image(image)
+            # image=image.astype('uint8')
             predicted_data = hand_detector.get_result_as_dict(image, classifier)
 
             # print(predicted_data)
